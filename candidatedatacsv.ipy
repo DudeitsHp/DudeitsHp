@@ -1,0 +1,57 @@
+import pandas as pd
+from faker import Faker
+import random as r
+import json
+
+fake = Faker(['en_IN'])
+data = []
+clg = ['SRM', 'loyola', 'DGV', 'MDU', 'MCC']
+cource = ['Bsc', 'BCA', 'Btech', 'MCA', 'Msc']
+record_count = 100000  # Number of candidate records to generate
+
+for _ in range(record_count):
+    df = pd.read_csv('data/tech_skills.csv', header=None)
+    rand_skill = df.sample(n=3)
+    skills_list = rand_skill.to_string(index=False, header=False).split("\n")
+    tech_skills = [skill.strip().lower().replace(' ', '_') for skill in skills_list]
+    rand_clg = r.choice(clg)
+    rand_cource = r.choice(cource)
+    record = {
+        "job_title": fake.job(),
+        "name": fake.name(),
+        "email": fake.free_email(),
+        "phone": fake.phone_number(),
+        "current_location": fake.state(),
+        "current_salary": r.randint(100000, 9999999),
+        "total_experience": r.randint(0, 360),
+        "work_experience": [
+            {
+                "company": fake.company(),
+                "job_title": fake.job(),
+                "start_date": fake.date(),
+                "end_date": fake.date()
+            }
+        ],
+        "education": [
+            {
+                "institution_name": rand_clg,
+                "course_title": rand_cource,
+                "start_date": fake.date(),
+                "end_date": fake.date()
+            }
+        ],
+        "skills": tech_skills,
+        "notice_period": fake.random_int(min=0, max=90, step=5),
+        "job_pool_id" : 2,
+        "preffered_location": fake.state()        
+    }
+    data.append(record)
+
+# Write data to JSON file
+with open("data/candidatedataref.json", "w") as json_file:
+    json.dump(data, json_file, indent=4)
+
+print(f"{record_count} candidate records saved to 'candidate.json' file.")
+
+df = pd.read_json('data/candidatedataref.json')
+df.to_csv('data/candidatedata.csv')
